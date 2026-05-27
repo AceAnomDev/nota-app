@@ -11,50 +11,63 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm install
-      - run: npm run build:win
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Windows
+        run: npm run build:win
+
       - uses: actions/upload-artifact@v4
         with:
           name: nota-windows
-          path: dist/*.exe
+          path: dist/**/*.exe
 
   build-mac:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm install
-      - run: npm run build:mac
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build macOS
+        run: npm run build:mac
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
+
       - uses: actions/upload-artifact@v4
         with:
           name: nota-mac
-          path: dist/*.dmg
+          path: dist/**/*.dmg
 
   build-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm install
-      - run: npm run build:linux
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Linux
+        run: npm run build:linux
+
       - uses: actions/upload-artifact@v4
         with:
           name: nota-linux
-          path: dist/*.AppImage
+          path: dist/**/*.AppImage
 
   release:
     needs: [build-windows, build-mac, build-linux]
@@ -64,6 +77,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
+
       - uses: softprops/action-gh-release@v2
         with:
           name: "NOTA ${{ github.ref_name }}"
