@@ -4,7 +4,7 @@
 
 **A minimal, elegant note-taking app for thoughts, goals, ideas & tasks**
 
-![Version](https://img.shields.io/badge/version-1.0.0-e8c97a?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.0.3-e8c97a?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-c4734a?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-7a9e7e?style=flat-square)
 ![Built with](https://img.shields.io/badge/built%20with-Electron-8a9abf?style=flat-square)
