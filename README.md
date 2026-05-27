@@ -1,39 +1,101 @@
-# NOTA — Записная книжка
+<div align="center">
 
-> Приложение для заметок, целей, идей и задач. Тёмный editorial-дизайн.
+# ✦ NOTA
 
-## Скачать
+**A minimal, elegant note-taking app for thoughts, goals, ideas & tasks**
 
-Перейди в раздел [**Releases**](../../releases) и скачай установщик для своей платформы.
+![Version](https://img.shields.io/badge/version-1.0.0-e8c97a?style=flat-square)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-c4734a?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-7a9e7e?style=flat-square)
+![Built with](https://img.shields.io/badge/built%20with-Electron-8a9abf?style=flat-square)
 
-## Разработка
+<br/>
+
+![NOTA Screenshot](https://raw.githubusercontent.com/AceAnomDev/nota-app/main/screenshot.png)
+
+</div>
+
+---
+
+## ✦ About
+
+NOTA is a distraction-free desktop app to capture everything that matters — notes, goals, ideas, and tasks — wrapped in a dark editorial aesthetic. No accounts, no cloud, no noise. Your data stays local.
+
+---
+
+## ✦ Features
+
+| | |
+|---|---|
+| 📝 **Notes** | Free-form writing for thoughts and records |
+| 🎯 **Goals** | Track progress with a visual progress bar |
+| 💡 **Ideas** | Capture concepts before they slip away |
+| ✅ **Tasks** | Checklist-based task management |
+| 🏷️ **Tags** | Organize entries with custom tags |
+| 📌 **Pin** | Keep important entries at the top |
+| 🔍 **Search** | Instant full-text search across all entries |
+| 💾 **Local storage** | All data saved locally, no account needed |
+| ⌨️ **Shortcuts** | `Ctrl/Cmd + N` to create a new entry |
+
+---
+
+## ✦ Download
+
+Go to [**Releases**](../../releases/latest) and download the installer for your platform.
+
+| Platform | File | Instructions |
+|----------|------|-------------|
+| 🪟 Windows | `.exe` | Run the installer and follow the steps |
+| 🍎 macOS | `.dmg` | Open and drag NOTA to Applications |
+| 🐧 Linux | `.AppImage` | `chmod +x NOTA-*.AppImage` then run |
+
+---
+
+## ✦ Development
 
 ```bash
-# Установить зависимости
+# Clone the repo
+git clone https://github.com/AceAnomDev/nota-app.git
+cd nota-app
+
+# Install dependencies
 npm install
 
-# Запустить в режиме разработки
+# Run in development mode
 npm start
-
-# Собрать установщик
-npm run build        # все платформы (только на macOS)
-npm run build:win    # Windows .exe
-npm run build:mac    # macOS .dmg
-npm run build:linux  # Linux .AppImage
 ```
 
-## Релиз
+### Build installers locally
 
-Просто создай тег — GitHub Actions сам соберёт всё и выложит в Releases:
+```bash
+npm run build:win    # → Windows .exe
+npm run build:mac    # → macOS .dmg
+npm run build:linux  # → Linux .AppImage
+```
+
+### Release a new version
+
+Push a tag — GitHub Actions builds everything automatically:
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-## Технологии
+Installers for all three platforms will appear in **Releases** in ~10 minutes.
 
-- [Electron](https://www.electronjs.org/) — десктоп-обёртка
-- [electron-builder](https://www.electron.build/) — сборка установщиков
-- [GitHub Actions](https://github.com/features/actions) — CI/CD
-- Чистый HTML/CSS/JS + `localStorage` для хранения данных
+---
+
+## ✦ Tech Stack
+
+- [Electron](https://www.electronjs.org/) — cross-platform desktop shell
+- [electron-builder](https://www.electron.build/) — packaging & installers
+- [GitHub Actions](https://github.com/features/actions) — CI/CD pipeline
+- Vanilla HTML / CSS / JS — zero framework dependencies
+- `localStorage` — simple, reliable local persistence
+
+---
+
+## ✦ License
+
+MIT © [AceAnomDev](https://github.com/AceAnomDev)
