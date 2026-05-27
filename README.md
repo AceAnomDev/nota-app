@@ -11,7 +11,7 @@
 
 <br/>
 
-![NOTA Screenshot](https://github.com/AceAnomDev/nota-app/blob/main/main/screenshot.p)
+![NOTA Screenshot](https://github.com/AceAnomDev/nota-app/blob/main/main/screenshot.png)
 
 </div>
 
@@ -45,7 +45,7 @@ Go to [**Releases**](../../releases/latest) and download the installer for your 
 
 | Platform | File | Instructions |
 |----------|------|-------------|
-| 🪟 Windows | `.exe` | Run the installer and follow the steps |
+|  Windows | `.exe` | Run the installer and follow the steps |
 | 🍎 macOS | `.dmg` | Open and drag NOTA to Applications |
 | 🐧 Linux | `.AppImage` | `chmod +x NOTA-*.AppImage` then run |
 
