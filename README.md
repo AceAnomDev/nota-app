@@ -11,7 +11,7 @@
 
 <br/>
 
-![NOTA Screenshot](https://github.com/AceAnomDev/nota-app/blob/main/main/screenshot.png)
+![NOTA Screenshot](https://github.com/AceAnomDev/nota-app/blob/main/main/screenshot.p)
 
 </div>
 
