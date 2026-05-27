@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NOTA — Заметки & Цели</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0e0d0c;
+      --surface: #161514;
+      --surface2: #1e1c1a;
+      --border: #2a2724;
+      --accent: #e8c97a;
+      --accent2: #c4734a;
+      --text: #f0ece4;
+      --text-muted: #7a736a;
+      --text-dim: #4a4540;
+      --note-color: #e8c97a;
+      --goal-color: #c4734a;
+      --idea-color: #7a9e7e;
+      --task-color: #8a9abf;
+      --radius: 4px;
+      --sidebar-w: 260px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      overflow: hidden;
+    }
+
+    /* ── LAYOUT ── */
+    .app {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      grid-template-rows: 100vh;
+      height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 28px 20px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .logo span {
+      color: var(--text-muted);
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+      letter-spacing: 3px;
+      display: block;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    .new-btn {
+      margin: 16px 20px 0;
+      width: calc(100% - 40px);
+      padding: 10px;
+      background: var(--accent);
+      color: #0e0d0c;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .new-btn:hover { background: #f0d78e; transform: translateY(-1px); }
+    .new-btn:active { transform: translateY(0); }
+
+    .sidebar-filters {
+      padding: 20px 20px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .filter-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .filter-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--text-muted);
+      background: transparent;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+    .chip.active { background: var(--accent); color: #0e0d0c; border-color: var(--accent); }
+    .chip[data-type="goal"].active { background: var(--goal-color); border-color: var(--goal-color); color: #fff; }
+    .chip[data-type="idea"].active { background: var(--idea-color); border-color: var(--idea-color); color: #fff; }
+    .chip[data-type="task"].active { background: var(--task-color); border-color: var(--task-color); color: #fff; }
+
+    .note-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px;
+    }
+
+    .note-list::-webkit-scrollbar { width: 4px; }
+    .note-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .note-item {
+      padding: 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      margin-bottom: 4px;
+      transition: background 0.12s;
+      border-left: 2px solid transparent;
+      position: relative;
+    }
+    .note-item:hover { background: var(--surface2); }
+    .note-item.active { background: var(--surface2); border-left-color: var(--accent); }
+    .note-item[data-type="goal"].active { border-left-color: var(--goal-color); }
+    .note-item[data-type="idea"].active { border-left-color: var(--idea-color); }
+    .note-item[data-type="task"].active { border-left-color: var(--task-color); }
+
+    .note-item-type {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      opacity: 0.6;
+    }
+    .note-item[data-type="note"] .note-item-type { color: var(--note-color); }
+    .note-item[data-type="goal"] .note-item-type { color: var(--goal-color); }
+    .note-item[data-type="idea"] .note-item-type { color: var(--idea-color); }
+    .note-item[data-type="task"] .note-item-type { color: var(--task-color); }
+
+    .note-item-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+
+    .note-item-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .note-item-delete {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      transition: opacity 0.15s, color 0.15s;
+    }
+    .note-item:hover .note-item-delete { opacity: 1; }
+    .note-item-delete:hover { color: var(--accent2); }
+
+    .empty-list {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-dim);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+    }
+
+    /* ── MAIN AREA ── */
+    .main {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .toolbar-type {
+      display: flex;
+      gap: 6px;
+    }
+
+    .type-btn {
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.12s;
+    }
+    .type-btn:hover { border-color: var(--text-muted); }
+    .type-btn.active[data-type="note"] { background: var(--note-color); border-color: var(--note-color); color: #0e0d0c; }
+    .type-btn.active[data-type="goal"] { background: var(--goal-color); border-color: var(--goal-color); color: #fff; }
+    .type-btn.active[data-type="idea"] { background: var(--idea-color); border-color: var(--idea-color); color: #fff; }
+    .type-btn.active[data-type="task"] { background: var(--task-color); border-color: var(--task-color); color: #fff; }
+
+    .toolbar-spacer { flex: 1; }
+
+    .save-indicator {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .save-indicator.show { opacity: 1; }
+
+    .pin-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: var(--radius);
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.12s;
+    }
+    .pin-btn:hover, .pin-btn.active { border-color: var(--accent); color: var(--accent); }
+
+    .editor-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 40px 48px;
+      overflow-y: auto;
+      gap: 0;
+    }
+
+    .editor-area::-webkit-scrollbar { width: 5px; }
+    .editor-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .title-input {
+      font-family: 'Playfair Display', serif;
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--text);
+      background: none;
+      border: none;
+      outline: none;
+      width: 100%;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      letter-spacing: -1px;
+    }
+    .title-input::placeholder { color: var(--text-dim); }
+
+    .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .meta-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    .meta-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .tag-input {
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      outline: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      width: 80px;
+      padding: 2px 4px;
+    }
+    .tag-input::placeholder { color: var(--text-dim); }
+
+    .body-input {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 300;
+      line-height: 1.8;
+      color: var(--text);
+      background: none;
+      border: none;
+      outline: none;
+      width: 100%;
+      resize: none;
+      flex: 1;
+      min-height: 300px;
+    }
+    .body-input::placeholder { color: var(--text-dim); }
+
+    /* Goal progress */
+    .progress-section {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+    .progress-section.visible { display: block; }
+
+    .progress-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--goal-color);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-input {
+      width: 100%;
+      accent-color: var(--goal-color);
+      cursor: pointer;
+      background: none;
+      height: 4px;
+      position: absolute;
+      top: 0; left: 0;
+      opacity: 0;
+    }
+
+    /* Task checklist */
+    .checklist-section {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+    .checklist-section.visible { display: block; }
+
+    .checklist-header {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+
+    .checklist-items { display: flex; flex-direction: column; gap: 8px; }
+
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .check-box {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 3px;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+    .check-box.checked { background: var(--task-color); border-color: var(--task-color); color: white; }
+
+    .check-text {
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      flex: 1;
+    }
+    .check-text.done { text-decoration: line-through; color: var(--text-dim); }
+
+    .add-check-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 1px;
+      padding: 6px 0;
+      transition: color 0.12s;
+      text-align: left;
+    }
+    .add-check-btn:hover { color: var(--task-color); }
+
+    /* Welcome screen */
+    .welcome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+      opacity: 0.5;
+    }
+
+    .welcome-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .welcome-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .welcome-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 24px;
+      padding: 10px 32px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--surface);
+    }
+
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .stat[data-t="note"] .stat-num { color: var(--note-color); }
+    .stat[data-t="goal"] .stat-num { color: var(--goal-color); }
+    .stat[data-t="idea"] .stat-num { color: var(--idea-color); }
+    .stat[data-t="task"] .stat-num { color: var(--task-color); }
+
+    /* Animations */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .note-item { animation: slideIn 0.2s ease; }
+
+    /* Modal for new note */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 32px;
+      width: 360px;
+      animation: slideIn 0.2s ease;
+    }
+
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: var(--accent);
+    }
+
+    .modal-types {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .modal-type-btn {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: none;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+    }
+    .modal-type-btn:hover { border-color: var(--accent); background: var(--surface2); }
+
+    .modal-type-icon { font-size: 22px; margin-bottom: 6px; }
+    .modal-type-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    .modal-type-desc {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+
+    .modal-cancel {
+      margin-top: 16px;
+      width: 100%;
+      padding: 10px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      transition: border-color 0.12s;
+    }
+    .modal-cancel:hover { border-color: var(--text-muted); }
+
+    /* Search */
+    .search-wrap {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 7px 10px 7px 28px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.12s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' viewBox='0 0 24 24' stroke='%234a4540' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 8px center;
+    }
+    .search-input::placeholder { color: var(--text-dim); }
+    .search-input:focus { border-color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">NOTA<span>записная книжка</span></div>
+    </div>
+    <button class="new-btn" onclick="openModal()">+ НОВАЯ ЗАПИСЬ</button>
+
+    <div class="search-wrap">
+      <input class="search-input" type="text" id="searchInput" placeholder="Поиск..." oninput="renderList()">
+    </div>
+
+    <div class="sidebar-filters">
+      <div class="filter-label">Тип</div>
+      <div class="filter-chips">
+        <div class="chip active" data-type="all" onclick="setFilter('all')">Все</div>
+        <div class="chip" data-type="note" onclick="setFilter('note')">Заметки</div>
+        <div class="chip" data-type="goal" onclick="setFilter('goal')">Цели</div>
+        <div class="chip" data-type="idea" onclick="setFilter('idea')">Идеи</div>
+        <div class="chip" data-type="task" onclick="setFilter('task')">Задачи</div>
+      </div>
+    </div>
+
+    <div class="note-list" id="noteList"></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="mainArea">
+    <div class="welcome" id="welcomeScreen">
+      <div class="welcome-icon">✦</div>
+      <div class="welcome-title">Ваше пространство для мыслей</div>
+      <div class="welcome-sub">Создайте первую запись</div>
+    </div>
+
+    <div id="editorWrap" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+      <div class="toolbar">
+        <div class="toolbar-type" id="typeButtons">
+          <button class="type-btn" data-type="note" onclick="setType('note')">Заметка</button>
+          <button class="type-btn" data-type="goal" onclick="setType('goal')">Цель</button>
+          <button class="type-btn" data-type="idea" onclick="setType('idea')">Идея</button>
+          <button class="type-btn" data-type="task" onclick="setType('task')">Задача</button>
+        </div>
+        <div class="toolbar-spacer"></div>
+        <span class="save-indicator" id="saveIndicator">СОХРАНЕНО ✓</span>
+        <button class="pin-btn" id="pinBtn" onclick="togglePin()" title="Закрепить">📌</button>
+      </div>
+
+      <div class="editor-area">
+        <input class="title-input" id="titleInput" type="text" placeholder="Заголовок..." oninput="onEdit()">
+
+        <div class="meta-row">
+          <span class="meta-date" id="metaDate"></span>
+          <div class="meta-tags" id="metaTags">
+            <input class="tag-input" id="tagInput" placeholder="+ тег" onkeydown="addTag(event)">
+          </div>
+        </div>
+
+        <textarea class="body-input" id="bodyInput" placeholder="Начните писать..." oninput="onEdit(); autoResize(this)"></textarea>
+
+        <!-- Goal progress -->
+        <div class="progress-section" id="progressSection">
+          <div class="progress-label">
+            <span>ПРОГРЕСС</span>
+            <span id="progressVal">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+            <input type="range" class="progress-input" id="progressInput" min="0" max="100" value="0" oninput="updateProgress(this.value)">
+          </div>
+        </div>
+
+        <!-- Task checklist -->
+        <div class="checklist-section" id="checklistSection">
+          <div class="checklist-header">СПИСОК ЗАДАЧ</div>
+          <div class="checklist-items" id="checklistItems"></div>
+          <button class="add-check-btn" onclick="addCheckItem()">+ добавить пункт</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat" data-t="note">
+        <span class="stat-num" id="statNote">0</span>
+        <span class="stat-label">Заметок</span>
+      </div>
+      <div class="stat" data-t="goal">
+        <span class="stat-num" id="statGoal">0</span>
+        <span class="stat-label">Целей</span>
+      </div>
+      <div class="stat" data-t="idea">
+        <span class="stat-num" id="statIdea">0</span>
+        <span class="stat-label">Идей</span>
+      </div>
+      <div class="stat" data-t="task">
+        <span class="stat-num" id="statTask">0</span>
+        <span class="stat-label">Задач</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-title">Новая запись</div>
+    <div class="modal-types">
+      <button class="modal-type-btn" onclick="createNote('note')">
+        <div class="modal-type-icon">📝</div>
+        <div class="modal-type-name">Заметка</div>
+        <div class="modal-type-desc">Мысли, записи</div>
+      </button>
+      <button class="modal-type-btn" onclick="createNote('goal')">
+        <div class="modal-type-icon">🎯</div>
+        <div class="modal-type-name">Цель</div>
+        <div class="modal-type-desc">С прогресс-баром</div>
+      </button>
+      <button class="modal-type-btn" onclick="createNote('idea')">
+        <div class="modal-type-icon">💡</div>
+        <div class="modal-type-name">Идея</div>
+        <div class="modal-type-desc">Идеи, концепты</div>
+      </button>
+      <button class="modal-type-btn" onclick="createNote('task')">
+        <div class="modal-type-icon">✅</div>
+        <div class="modal-type-name">Задача</div>
+        <div class="modal-type-desc">Чеклист</div>
+      </button>
+    </div>
+    <button class="modal-cancel" onclick="closeModal()">ОТМЕНА</button>
+  </div>
+</div>
+
+<script>
+  // ── STATE ──
+  let notes = JSON.parse(localStorage.getItem('nota_notes') || '[]');
+  let currentId = null;
+  let currentFilter = 'all';
+  let saveTimer = null;
+
+  // ── HELPERS ──
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+  function formatDate(ts) {
+    const d = new Date(ts);
+    return d.toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric' });
+  }
+
+  function save() {
+    localStorage.setItem('nota_notes', JSON.stringify(notes));
+    const ind = document.getElementById('saveIndicator');
+    ind.classList.add('show');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => ind.classList.remove('show'), 1800);
+  }
+
+  // ── RENDER LIST ──
+  function renderList() {
+    const list = document.getElementById('noteList');
+    const q = document.getElementById('searchInput').value.toLowerCase();
+
+    let filtered = notes.filter(n => {
+      const matchType = currentFilter === 'all' || n.type === currentFilter;
+      const matchQ = !q || n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q);
+      return matchType && matchQ;
+    });
+
+    // Pinned first
+    filtered.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.updatedAt - a.updatedAt);
+
+    if (!filtered.length) {
+      list.innerHTML = '<div class="empty-list">Нет записей</div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(n => `
+      <div class="note-item ${n.id === currentId ? 'active' : ''}" data-type="${n.type}" onclick="openNote('${n.id}')">
+        <div class="note-item-type">${n.pinned ? '📌 ' : ''}${typeName(n.type)}</div>
+        <div class="note-item-title">${n.title || 'Без названия'}</div>
+        <div class="note-item-date">${formatDate(n.updatedAt)}</div>
+        <button class="note-item-delete" onclick="deleteNote(event,'${n.id}')">×</button>
+      </div>
+    `).join('');
+
+    updateStats();
+  }
+
+  function typeName(t) {
+    return { note:'Заметка', goal:'Цель', idea:'Идея', task:'Задача' }[t] || t;
+  }
+
+  // ── FILTERS ──
+  function setFilter(f) {
+    currentFilter = f;
+    document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.type === f));
+    renderList();
+  }
+
+  // ── CREATE ──
+  function openModal() {
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+  function closeModalOutside(e) {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  }
+
+  function createNote(type) {
+    closeModal();
+    const n = {
+      id: uid(),
+      type,
+      title: '',
+      body: '',
+      tags: [],
+      pinned: false,
+      progress: 0,
+      checklist: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+    notes.unshift(n);
+    save();
+    renderList();
+    openNote(n.id);
+  }
+
+  // ── OPEN NOTE ──
+  function openNote(id) {
+    currentId = id;
+    const n = notes.find(x => x.id === id);
+    if (!n) return;
+
+    document.getElementById('welcomeScreen').style.display = 'none';
+    const ew = document.getElementById('editorWrap');
+    ew.style.display = 'flex';
+
+    document.getElementById('titleInput').value = n.title;
+    document.getElementById('bodyInput').value = n.body;
+    document.getElementById('metaDate').textContent = formatDate(n.updatedAt);
+    document.getElementById('pinBtn').classList.toggle('active', !!n.pinned);
+
+    // Type buttons
+    document.querySelectorAll('.type-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.type === n.type);
+    });
+
+    // Tags
+    renderTags(n);
+
+    // Progress (goal)
+    const ps = document.getElementById('progressSection');
+    ps.classList.toggle('visible', n.type === 'goal');
+    if (n.type === 'goal') {
+      document.getElementById('progressInput').value = n.progress;
+      document.getElementById('progressFill').style.width = n.progress + '%';
+      document.getElementById('progressVal').textContent = n.progress + '%';
+    }
+
+    // Checklist (task)
+    const cs = document.getElementById('checklistSection');
+    cs.classList.toggle('visible', n.type === 'task');
+    if (n.type === 'task') renderChecklist(n);
+
+    const ta = document.getElementById('bodyInput');
+    autoResize(ta);
+
+    renderList();
+  }
+
+  // ── EDIT ──
+  function onEdit() {
+    if (!currentId) return;
+    const n = notes.find(x => x.id === currentId);
+    if (!n) return;
+    n.title = document.getElementById('titleInput').value;
+    n.body = document.getElementById('bodyInput').value;
+    n.updatedAt = Date.now();
+    document.getElementById('metaDate').textContent = formatDate(n.updatedAt);
+    save();
+    renderList();
+  }
+
+  function setType(type) {
+    if (!currentId) return;
+    const n = notes.find(x => x.id === currentId);
+    if (!n) return;
+    n.type = type;
+    n.updatedAt = Date.now();
+    save();
+    openNote(currentId);
+  }
+
+  function togglePin() {
+    if (!currentId) return;
+    const n = notes.find(x => x.id === currentId);
+    if (!n) return;
+    n.pinned = !n.pinned;
+    document.getElementById('pinBtn').classList.toggle('active', n.pinned);
+    save(); renderList();
+  }
+
+  function deleteNote(e, id) {
+    e.stopPropagation();
+    notes = notes.filter(n => n.id !== id);
+    if (currentId === id) {
+      currentId = null;
+      document.getElementById('welcomeScreen').style.display = 'flex';
+      document.getElementById('editorWrap').style.display = 'none';
+    }
+    save(); renderList();
+  }
+
+  // ── TAGS ──
+  function renderTags(n) {
+    const container = document.getElementById('metaTags');
+    const existingInput = document.getElementById('tagInput');
+    container.innerHTML = '';
+    n.tags.forEach((t, i) => {
+      const el = document.createElement('div');
+      el.className = 'tag';
+      el.textContent = '#' + t;
+      el.onclick = () => { n.tags.splice(i, 1); save(); renderTags(n); };
+      container.appendChild(el);
+    });
+    const inp = existingInput.cloneNode(true);
+    inp.id = 'tagInput';
+    inp.addEventListener('keydown', addTag);
+    container.appendChild(inp);
+  }
+
+  function addTag(e) {
+    if (e.key !== 'Enter') return;
+    const val = e.target.value.trim().replace(/^#/, '');
+    if (!val || !currentId) return;
+    const n = notes.find(x => x.id === currentId);
+    if (n && !n.tags.includes(val)) {
+      n.tags.push(val);
+      save(); renderTags(n);
+    }
+    e.target.value = '';
+  }
+
+  // ── PROGRESS ──
+  function updateProgress(v) {
+    if (!currentId) return;
+    const n = notes.find(x => x.id === currentId);
+    if (!n) return;
+    n.progress = parseInt(v);
+    document.getElementById('progressFill').style.width = v + '%';
+    document.getElementById('progressVal').textContent = v + '%';
+    save();
+  }
+
+  // ── CHECKLIST ──
+  function renderChecklist(n) {
+    const container = document.getElementById('checklistItems');
+    container.innerHTML = n.checklist.map((item, i) => `
+      <div class="checklist-item">
+        <div class="check-box ${item.done ? 'checked' : ''}" onclick="toggleCheck(${i})">${item.done ? '✓' : ''}</div>
+        <input class="check-text ${item.done ? 'done' : ''}" value="${item.text}"
+          onchange="editCheck(${i}, this.value)"
+          onkeydown="checkKeyDown(event, ${i})">
+      </div>
+    `).join('');
+  }
+
+  function addCheckItem() {
+    if (!currentId) return;
+    const n = notes.find(x => x.id === currentId);
+    if (!n) return;
+    n.checklist.push({ text: '', done: false });
+    save(); renderChecklist(n);
+    setTimeout(() => {
+      const inputs = document.querySelectorAll('.check-text');
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    }, 50);
+  }
+
+  function toggleCheck(i) {
+    if (!currentId) return;
+    const n = notes.find(x => x.id === currentId);
+    if (!n) return;
+    n.checklist[i].done = !n.checklist[i].done;
+    save(); renderChecklist(n);
+  }
+
+  function editCheck(i, val) {
+    if (!currentId) return;
+    const n = notes.find(x => x.id === currentId);
+    if (!n) return;
+    n.checklist[i].text = val;
+    save();
+  }
+
+  function checkKeyDown(e, i) {
+    if (e.key === 'Enter') addCheckItem();
+    if (e.key === 'Backspace' && e.target.value === '') {
+      if (!currentId) return;
+      const n = notes.find(x => x.id === currentId);
+      if (!n) return;
+      n.checklist.splice(i, 1);
+      save(); renderChecklist(n);
+    }
+  }
+
+  // ── STATS ──
+  function updateStats() {
+    ['note','goal','idea','task'].forEach(t => {
+      document.getElementById('stat' + t.charAt(0).toUpperCase() + t.slice(1)).textContent =
+        notes.filter(n => n.type === t).length;
+    });
+  }
+
+  // ── MISC ──
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
+  // ── KEYBOARD SHORTCUTS ──
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+      e.preventDefault(); openModal();
+    }
+  });
+
+  // ── INIT ──
+  // Sample data if empty
+  if (!notes.length) {
+    notes = [
+      {
+        id: uid(), type: 'note',
+        title: 'Добро пожаловать в NOTA',
+        body: 'Это ваше персональное пространство для заметок, целей и идей.\n\nЗдесь вы можете записывать всё, что приходит в голову. Используйте теги для организации, прогресс-бар для целей, чеклисты для задач.',
+        tags: ['старт'], pinned: true, progress: 0, checklist: [],
+        createdAt: Date.now(), updatedAt: Date.now()
+      },
+      {
+        id: uid(), type: 'goal',
+        title: 'Пример цели',
+        body: 'Выучить новый язык программирования до конца года.',
+        tags: ['обучение'], pinned: false, progress: 35, checklist: [],
+        createdAt: Date.now() - 86400000, updatedAt: Date.now() - 86400000
+      },
+      {
+        id: uid(), type: 'task',
+        title: 'Список задач',
+        body: '',
+        tags: [], pinned: false, progress: 0,
+        checklist: [
+          { text: 'Написать первую заметку', done: true },
+          { text: 'Попробовать создать цель', done: false },
+          { text: 'Добавить тег', done: false }
+        ],
+        createdAt: Date.now() - 3600000, updatedAt: Date.now() - 3600000
+      }
+    ];
+    save();
+  }
+
+  renderList();
+</script>
+</body>
+</html>
